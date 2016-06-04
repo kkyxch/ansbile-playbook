@@ -1,0 +1,46 @@
+---
+#  - name: copy fdfs_nginx_module
+#    copy: src=fastdfs-nginx-module_v1.16.tar.gz dest=/workspace/download/
+#  - name: copy nginx
+#    copy: src=nginx-1.8.1.tar.gz dest=/workspace/download/nginx-1.8.1.tar.gz
+#  - name: copy h264_module
+#    copy: src=h264_stream_2.3.2.tar.gz dest=/workspace/download/h264_stream_2.3.2.tar.gz
+  - name: Extract archive
+#    command: chdir=/workspace/download/ /bin/tar zxvf {{ item }}
+    unarchive: src={{ item }} dest=/workspace/download/
+    with_items:
+    - nginx-1.8.1.tar.gz
+    - h264_stream_2.3.2.tar.gz
+    - fastdfs-nginx-module_v1.16.tar.gz
+  - name: copy fdfs_module_config file
+    copy: src=fdfs_module_config dest=/workspace/download/fastdfs-nginx-module/src/config
+
+  - name: configure nginx
+    shell: chdir=/workspace/download/nginx-1.8.1 ./configure --prefix=/usr/local/nginx --user=www --group=www --with-http_flv_module --with-http_stub_status_module --add-module=../fastdfs-nginx-module/src/ --add-module=../nginx_mod_h264_streaming-2.3.2/
+
+  - name: make nginx
+    shell: chdir=/workspace/download/nginx-1.8.1 make && make install
+
+  - name: add group
+    group: name=www state=present
+
+  - name: add user
+    user: name=www state=present group=www shell=/sbin/nologin
+
+  - name: template  nginx.conf
+    template: src=nginx.conf.j2 dest=/usr/local/nginx/conf/nginx.conf
+
+  - name: template logrotate for nginx
+    template: src=nginx.j2 dest=/etc/logrotate.d/nginx
+
+  - name: template  mod_fastdfs.conf
+    template: src=mod_fastdfs.conf.j2 dest=/etc/fdfs/mod_fastdfs.conf
+
+  - name: copy  index.html
+    copy: src=index.html dest=/home/html/index.html
+
+  - replace: dest=/etc/fdfs/mod_fastdfs.conf  regexp=store_path0 replace=store_path
+
+  - name: add  nginx to rc.local
+    lineinfile: dest=/etc/rc.local  line=/usr/local/nginx/sbin/nginx
+

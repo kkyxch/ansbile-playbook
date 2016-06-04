@@ -1,0 +1,105 @@
+---
+#- hosts: 192.168.5.64
+#  tasks:
+  - name: wget 163.repo
+    get_url: dest=/etc/yum.repos.d/ url=http://mirrors.163.com/.help/CentOS6-Base-163.repo
+  - name: rpm install zabbix.repo
+    yum: name=http://repo.zabbix.com/zabbix/2.2/rhel/6/x86_64/zabbix-release-2.2-1.el6.noarch.rpm state=present
+  - name: install epel
+    yum: name={{ item }} state=present
+    with_items:
+       - epel-release
+  - name: install system_soft
+    yum: name={{ item }} state=present
+    with_items:
+       - lrzsz
+       - rsync
+       - wget
+       - pcre-devel
+       - zlib-devel
+       - iftop
+       - ntpdate
+       - dmidecode
+       - gcc
+       - gcc-c++
+       - tar
+       - openssh
+       - openssh-clients
+       - cmake
+       - rsyslog
+       - curl
+       - vim
+       - python
+       - iotop
+       - htop
+       - dstat
+       - git
+       - perl
+       - zabbix
+       - zabbix-agent
+       - cowsay
+       - tmux
+       - strace
+       - ltrace
+       - unzip
+       - libselinux-python
+  - name: yum update
+    yum: name=* state=latest
+  - name: Set uo Selinux
+    selinux: state=disabled
+  - name: copy authorized_keys file
+    copy: src=authorized_keys dest=/root/.ssh/authorized_keys mode=0600
+  - name: close ipv6
+    blockinfile: 
+      dest: /etc/modprobe.d/dist.conf
+      block: |
+        alias net-pf-10 off
+        alias ipv6 off
+  - name: forbidden Ctrl+Alt+Del
+    lineinfile: dest=/etc/init/control-alt-delete.conf  regexp='start on control-alt-delete'  line='#start on control-alt-delete'
+  - name: change ssh port
+    lineinfile: dest=/etc/ssh/sshd_config  regexp={{ item.reg }}  line={{ item.line }}
+    with_items:
+      - {reg: '^GSSAPIAuthentication',line: 'GSSAPIAuthentication no' }
+      - {reg: "^Port",line: "Port 48889"}
+      - {reg: "^UseDNS",line: "UseDNS no"}
+  - name: change ulimit01
+    lineinfile: dest=/etc/security/limits.conf  line={{ item }}
+    with_items: 
+      - '* soft nofile 65536'
+      - '* hard nofile 65536'
+  - name: change ulimit02
+    lineinfile: dest=/etc/security/limits.d/90-nproc.conf  regexp=1024  line='*          soft    nproc     10240'
+#  - name: change sysctl.conf
+#    sysctl: name=net.ipv4.tcp_tw_reuse value=1
+  - name: Set up iptables rules
+    template: src=iptables-save dest=/etc/sysconfig/iptables
+#    notify: restart iptables
+  - name: copy file to zabbix_agentd.d/
+    copy: src=userparameter_tcp_connect_status.conf dest=/etc/zabbix/zabbix_agentd.d/
+  - name: template zabbix.conf
+    template: src=zabbix_agentd.conf dest=/etc/zabbix/zabbix_agentd.conf
+    notify: restart zabbix-agnet
+  - name: create fdfs and html directory
+    file: path={{ item }}  state=directory
+    with_items:
+      - '/workspace/shell'
+      - '/workspace/download'
+      - '/fdfs/'
+      - '/workspace/logs/nginx'
+      - '/home/html'
+  - name: copy MegaCli and jiaoben
+    copy: src={{ item.src }} dest=/workspace/{{ item.dest}}
+    with_items:
+    - {src: 'MegaCli-8.07.14-1.noarch.rpm', dest: 'download/MegaCli-8.07.14-1.noarch.rpm'}
+    - {src: 'checkdriver.sh', dest: 'shell/checkdriver.sh'}
+  - name: install MegaCli
+    yum:  name=/workspace/download/MegaCli-8.07.14-1.noarch.rpm  state=present
+  - name: copy MegaCli softlink
+    file: src=/opt/MegaRAID/MegaCli/MegaCli64 dest=/usr/sbin/MegaCli state=link
+  - name: add crontab for MegaCli
+    cron: name={{ item.name }} job={{ item.job }} minute={{ item.m }} hour={{ item.h }}
+    with_items:
+    - { name: 'Disk monitoring to detect', job: 'sh /workspace/shell/checkdriver.sh', m: "00",h: "01" }
+    - { name: 'ntp_server',job: '/usr/sbin/ntpdate 113.31.67.242',m: "00",h: "06"}
+    - { name: 'logrotate nginx log',job: '/usr/sbin/logrotate -f /etc/logrotate.d/nginx',m: "59",h: "23"}

@@ -1,0 +1,57 @@
+user www www;
+worker_processes  {{ nginx_threads }};
+
+error_log  {{ nginx_error_log }};
+
+
+events {
+  use epoll;  
+  worker_connections  65535;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for" "$request_time"';
+
+    access_log  {{ nginx_access_log }}  main;
+    
+    server_names_hash_bucket_size 256;
+    client_header_buffer_size 64k;
+    large_client_header_buffers 4 64k;
+ 
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    server {
+        listen       80;
+        server_name  {{nginx_server_name}};
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+        limit_rate_after 10m;
+        limit_rate 2m;
+
+
+        location ~* .*\.mp4$ {
+          root /home/html;
+          ngx_fastdfs_module;
+          mp4;
+        }
+
+        location / {
+            root  /home/html;
+            index  index.html index.htm;
+        }
+  }
+
+}

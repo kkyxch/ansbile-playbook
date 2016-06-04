@@ -1,0 +1,8 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: True
+  roles:
+    - common
+    - fdfs
+    - nginx_install

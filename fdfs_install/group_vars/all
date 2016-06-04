@@ -1,0 +1,13 @@
+---
+group_name: MV03
+tracker_server01: 113.31.64.69
+tracker_server02: 116.213.205.13
+nginx_threads: 6
+fdfs_threads: 4
+nginx_error_log: "/workspace/logs/nginx/error.log"
+nginx_access_log: "/workspace/logs/nginx/access.log"
+nginx_log_d: "/workspace/logs/nginx/"
+nginx_server_name: "mv03.cuctv.com"
+tbj_server: 113.31.64.76
+ansible_server: 113.31.67.242
+nic_nei: em3

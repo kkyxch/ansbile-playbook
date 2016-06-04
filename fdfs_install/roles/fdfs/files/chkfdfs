@@ -1,0 +1,1 @@
+fdfs_monitor /etc/fdfs/client.conf |egrep "Storage .|group name|active server count|ip_addr|last_synced_timestamp"

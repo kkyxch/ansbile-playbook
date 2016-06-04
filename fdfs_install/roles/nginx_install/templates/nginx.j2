@@ -1,0 +1,12 @@
+{{ nginx_log_d }}*.log {
+    daily
+    rotate 32
+    missingok
+    notifempty
+    sharedscripts
+    dateext
+    postrotate
+        /bin/kill -USR1 $(cat /usr/local/nginx/logs/nginx.pid 2>/dev/null) 2>/dev/null || :
+    endscript
+}
+
