@@ -7,6 +7,8 @@
     git: repo=https://github.com/happyfish100/libfastcommon.git dest=/workspace/download/libfastcommon
   - name: install libfastcommon
     shell: ./make.sh && ./make.sh install  chdir=/workspace/download/libfastcommon
+  - name: change fastdfs Source code Close prefix
+    copy: src=stroage_service.c dest=/workspace/download/fastdfs/storage/storage_service.c
   - name: install fastfds
     shell: chdir=/workspace/download/fastdfs ./make.sh && ./make.sh install
   - name: set store_size var
