@@ -1,0 +1,26 @@
+---
+  - name: downlaod grable
+    get_url:
+      url: http://10.153.40.212/repo/gradle/gradle-4.10.2-bin.zip
+      dest: /usr/local/src
+
+  - name: create grable
+    file:
+      path: /data/app
+      state: directory
+      mode: 0755
+
+  - name: unzip grable
+    unarchive:
+      src: /usr/local/src/gradle-4.10.2-bin.zip
+      dest: /data/app/
+      remote_src: yes
+
+  - name: cp grable.sh
+    copy: src=files/grable.sh.j2 dest=/etc/profile.d/gtable.sh
+
+  - name: change JVM Xmx=4G
+    lineinfile:
+      path: /data/app/gradle-4.10.2/bin/gradle
+      regexp: '^DEFAULT_JVM_OPTS=""'
+      line: 'DEFAULT_JVM_OPTS="-Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"'
