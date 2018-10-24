@@ -1,0 +1,24 @@
+---
+  - name: downlaod gitlab-runner
+    get_url:
+      url: http://10.153.40.212/repo/gitlab-runner/gitlab-runner
+      dest: /usr/local/bin/gitlab-runner
+      mode: 0755
+
+  - name: create workspace
+    file:
+      path: '{{ gitlab_runner_workspace_directory }}'
+      state: directory
+      mode: 0755
+
+- name: add gitlab-runner user
+    user:
+      name: gitlab-runner
+      shell: /bin/bash
+      comment: 'GitLab Runner'
+
+  - name: install gitlab-runner
+    command: sudo /usr/local/bin/gitlab-runner install --user=gitlab-runner --working-directory="{{gitlab_runner_workspace_directory}}"
+      when:
+
+   notify: start gitlab-runner
