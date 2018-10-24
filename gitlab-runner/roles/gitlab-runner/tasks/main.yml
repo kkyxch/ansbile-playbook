@@ -1,0 +1,8 @@
+---
+  - name: Install GitLab Runner (centos)
+    include: install_centos.yml
+    when: ansible_os_family == 'RedHat'
+
+  - name: Register Gitlab Runner
+    include: register.yml
+    when: gitlab_runner_registration_token != ''
