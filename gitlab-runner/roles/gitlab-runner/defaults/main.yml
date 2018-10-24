@@ -1,0 +1,8 @@
+---
+  gitlab_runner_coordinator_url: ''
+  gitlab_runner_registration_token: ''
+  gitlab_runner_description: '{{ ansible_hostname }}'
+  gitlab_runner_tags: []
+  gitlab_runner_executor: 'shell'
+  gitlab_runner_docker_image: ''
+  gitlab_runner_workspace_directory: '/data/gitlab-runner'
